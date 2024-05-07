@@ -6,7 +6,22 @@ Hypermedia Pagination Module
 import csv
 import math
 from typing import List, Dict, Any, Tuple
-from simple_helper_function import index_range
+
+
+def index_range(page: int, page_size: int) -> Tuple[int, int]:
+    """
+    Return a tuple of size two containing a start index and an end index.
+
+    Args:
+        page (int): Page number (1-indexed).
+        page_size (int): Number of items per page.
+
+    Returns:
+        Tuple[int, int]: Tuple containing start index and end index.
+    """
+    start = (page - 1) * page_size
+    end = start + page_size
+    return start, end
 
 
 class Server:
@@ -40,9 +55,8 @@ class Server:
         assert page > 0 and page_size > 0
 
         start_index, end_index = index_range(page, page_size)
-        dataset = self.dataset()
-
-        return dataset[start_index:end_index]
+        self.dataset()
+        return self.__dataset[start_index:end_index]
 
     def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict[str, Any]:
         """
@@ -56,13 +70,15 @@ class Server:
             Dict[str, Any]: Pagination information.
         """
         data = self.get_page(page, page_size)
-        total_pages = math.ceil(len(self.dataset()) / page_size)
-
+        global_len = len(self.__dataset)
+        num_of_pages = global_len / page_size
         return {
             "page_size": len(data),
             "page": page,
             "data": data,
-            "next_page": page + 1 if page < total_pages else None,
-            "prev_page": page - 1 if page > 1 else None,
-            "total_pages": total_pages
+            "next_page": page + 1 if global_len > (page * page_size) else None,
+            "prev_page": page - 1 if page >= 2 else None,
+            "total_pages": int(num_of_pages)
+            if num_of_pages <= float(int(num_of_pages))
+            else int(num_of_pages) + 1
         }
