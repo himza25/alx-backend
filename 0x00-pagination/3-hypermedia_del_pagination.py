@@ -4,7 +4,7 @@ Deletion-resilient hypermedia pagination
 """
 
 import csv
-from typing import List, Dict, Any
+from typing import List, Dict
 
 
 class Server:
@@ -33,25 +33,23 @@ class Server:
             }
         return self.__indexed_dataset
 
-    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict[str, Any]:
-        """
-        Returns a dictionary with pagination information based on the provided index.
-
-        Args:
-            index (int): The starting index of the page.
-            page_size (int): The number of items per page.
-
-        Returns:
-            Dict[str, Any]: Pagination information.
-        """
-        assert isinstance(index, int) and index >= 0
+    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
+        """Deletion-resilient hypermedia pagination"""
+        datakey = self.indexed_dataset()
+        assert isinstance(index, int) and index < len(datakey)
         assert isinstance(page_size, int) and page_size > 0
 
-        indexed_data = self.indexed_dataset()
-        dataset_size = len(indexed_data)
+        data_len = len(datakey)
+        current = index if index in datakey else next(
+            i for i in range(index, data_len) if i in datakey
+        )
 
-        assert index < dataset_size
-
-        data = []
-        current_index = index
-        count = 
+        return {
+            "index": index,
+            "data": [
+                datakey[i]
+                for i in range(current, current + page_size) if i in datakey
+            ],
+            "page_size": page_size,
+            "next_index": current + page_size
+        }
