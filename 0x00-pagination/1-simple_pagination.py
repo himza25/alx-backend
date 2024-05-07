@@ -4,8 +4,8 @@ Simple Pagination Module
 """
 
 import csv
-from typing import List, Tuple
-from 0-simple_helper_function import index_range
+from typing import List
+from simple_helper_function import index_range
 
 
 class Server:
@@ -18,7 +18,7 @@ class Server:
     def dataset(self) -> List[List]:
         """Cached dataset"""
         if self.__dataset is None:
-            with open(self.DATA_FILE) as f:
+            with open(self.DATA_FILE, newline='') as f:
                 reader = csv.reader(f)
                 dataset = [row for row in reader]
             self.__dataset = dataset[1:]
