@@ -1,39 +1,49 @@
 #!/usr/bin/env python3
-""" MRU Cache module
+""" MRU Caching Module
 """
+
 from base_caching import BaseCaching
-from collections import OrderedDict
 
 
 class MRUCache(BaseCaching):
-    """ MRUCache class that inherits from BaseCaching
-        Implements an MRU caching system
+    """ MRUCache class, inheriting from BaseCaching and implementing
+    the MRU caching system.
     """
-
     def __init__(self):
-        """ Initialize
+        """ Initialize the MRUCache class
         """
         super().__init__()
-        self.cache_data = OrderedDict()
+        self.mru_keys = []
 
     def put(self, key, item):
-        """ Add an item in the cache
+        """ Add an item to the cache using MRU policy
         """
         if key is None or item is None:
             return
 
+        # If key already exists, update value and move to most recent position
         if key in self.cache_data:
-            self.cache_data.move_to_end(key)
-        self.cache_data[key] = item
+            self.cache_data[key] = item
+            self.mru_keys.remove(key)
+            self.mru_keys.append(key)
+        else:
+            # If cache is full, discard most recently used
+            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                mru_key = self.mru_keys.pop()
+                del self.cache_data[mru_key]
+                print(f"DISCARD: {mru_key}")
 
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            discarded, _ = self.cache_data.popitem(last=True)
-            print(f"DISCARD: {discarded}")
+            # Add new item
+            self.cache_data[key] = item
+            self.mru_keys.append(key)
 
     def get(self, key):
-        """ Get an item by key
+        """ Retrieve an item from the cache
         """
         if key is None or key not in self.cache_data:
             return None
-        self.cache_data.move_to_end(key)
+
+        # Move key to the most recent position
+        self.mru_keys.remove(key)
+        self.mru_keys.append(key)
         return self.cache_data[key]
